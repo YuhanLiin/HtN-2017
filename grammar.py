@@ -19,7 +19,7 @@ class Many():
     def generate(self, rule):   # Pass in rule in case a self reference is made
         output = []
         for i in range(randint(self.low, self.high)):
-            output.append(rule.rule_or_self(self.rule).generate())
+            output.append(self.rule.generate())
         return join(output)
 
 # Can contain strings, Manys, and Rules
@@ -43,15 +43,25 @@ class Production():
 
 # A rule consists of productions, strings, and Manys.
 class Rule():
-    Self = object()
-    def __init__(self, *productions):
-        self.productions = productions
+    @staticmethod
+    def declare_all(n):
+        return [Rule() for _ in range(n)]
+
+    def __init__(self):
+        self.productions = []
         self.post_proc = no_op
         self.distribution = None
 
+    # Defines all productions
+    def define(self, *productions):
+        self.productions = productions
+        return self
+
     def clone(self):
-        copy = Rule(*self.productions)
+        copy = Rule()
+        copy.productions = self.productions
         copy.post_proc = self.post_proc
+        copy.distribution = self.distribution
         return copy
 
     def transform(self, process):
@@ -84,9 +94,6 @@ class Rule():
             return bisect_left(self.distribution, random())
         return randint(0, len(self.productions) - 1)
 
-    def rule_or_self(self, rule):
-        return self if rule == Rule.Self else rule
-
     def generate(self):
         production = self.productions[self.decide_prod()]
         if type(production) == Production:
@@ -98,7 +105,7 @@ class Rule():
             return sym
         if type(sym) == Many:
             return sym.generate(self)
-        return self.rule_or_self(sym).generate()
+        return sym.generate()
 
     def __repr__(self):
         return self.productions.__repr__()
