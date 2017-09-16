@@ -3,7 +3,7 @@ from helpers import pluralize, resolve_pronouns, replace_pronouns, replace_you
 
 # Declarations
 Verb, Verb3rd, Adverb, Noun, Adjective, Name, NamePhrase, Subject3rd, Subject, Object, IfPhrase, WhilePhrase, WhenPhrase, \
-Conditional, Question, Statement, Command, Sentence, Novel = Rule.declare_all(19)
+Conditional, Question, Statement, Command, Sentence, Novel, Article, ArticlePlural = Rule.declare_all(21)
 
 #import pdb; pdb.set_trace()
 # Definitions
@@ -13,22 +13,24 @@ Adverb.define('quickly', 'slowly', 'furiously', 'lovingly')
 Noun.define('bird', 'dog', 'dinosaur', 'force', 'Masterball', 'alien')
 Adjective.define('large', 'tiny', 'crazy', 'psychopathic')
 Name.define('Dio', 'Lem', 'Hackerman', 'Benny', 'Luke')
+Article.define('the', 'this', 'that', 'this one', 'that one', 'a', 'some')
+ArticlePlural.define('the', 'these', 'those', 'all these', 'all those', 'many', 'some')
 
 NamePhrase.define(Production(',', Name))
 Subject3rd.define(
-    Production('the', Many(Adjective, 0, 1), Noun),
+    Production(Article, Many(Adjective, 0, 1), Noun),
     'he', 'she', 'it', Name
 )
 Subject.define(
     'you', 'they', 'we', 'y\'all',
-    Production('the', Many(Adjective, 0, 1), 
+    Production(ArticlePlural, Many(Adjective, 0, 1), 
         Noun.clone().transform(pluralize)
     )
 )
 Object.define(
     'you', 'them', 'us', 'him', 'her', 'y\'all', 'me', Name, 
-    Production('the', Many(Adjective, 0, 1), Noun.clone().transform(pluralize)), 
-    Production('the', Many(Adjective, 0, 1), Noun)
+    Production(ArticlePlural, Many(Adjective, 0, 1), Noun.clone().transform(pluralize)), 
+    Production(Article, Many(Adjective, 0, 1), Noun)
 )
 
 IfPhrase.define(Production('if', Statement), Production('only if', Statement), Production('if and only if', Statement))
