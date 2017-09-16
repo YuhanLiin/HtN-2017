@@ -13,6 +13,9 @@ class Rule():
         self.productions = productions
         self.post_proc = post_proc
 
+    def transform(self, func):
+        return Rule(func(self.productions), self.post_proc)
+
     # # Constraint on the grammar. Int removes production positionally
     # def exclude(self, prod):
     #     if type(prod) == int:
