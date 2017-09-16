@@ -8,7 +8,13 @@ class Many():
 
 class Rule():
     Self = object()
-    punctuation = {}
+    @staticmethod
+    def join(lis):
+        string = ''
+        for s in lis:
+            if s != '':
+                string += ' ' + s
+        return string[1:]
     def __init__(self, *productions):
         self.productions = productions
         self.post_proc = lambda s:s
@@ -44,22 +50,18 @@ class Rule():
         if type(production) == list:
             output = []
             for symbol in production:
-                token = self.gen_token(symbol)
-                if token in Rule.punctuation:
-                    output[-1] += token
-                else:
-                    output.append(token)
-            return self.post_proc(' '.join(output))
-        return self.gen_token(production)
+                output.append(self.gen_token(symbol))
+            return self.post_proc(Rule.join(output))
+        return self.post_proc(self.gen_token(production))
 
     def gen_token(self, sym):
         if type(sym) == str:
-            return sym + ' '
+            return sym
         if type(sym) == Many:
-            output = ''
+            output = []
             for i in range(randint(sym.low, sym.high)):
-                output += self.rule_or_self(sym.rule).generate()
-            return output
+                output.append(self.rule_or_self(sym.rule).generate())
+            return Rule.join(output)
         return self.rule_or_self(sym).generate()
 
     def __repr__(self):
