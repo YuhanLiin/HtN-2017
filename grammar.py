@@ -42,16 +42,15 @@ class Rule():
     def generate(self):
         production = self.productions[randint(0, len(self.productions) - 1)]
         if type(production) == list:
-            output = ''
+            output = []
             for symbol in production:
                 token = self.gen_token(symbol)
-                if token[:-1] in Rule.punctuation:
-                    output = output[:-1] + token
+                if token in Rule.punctuation:
+                    output[-1] += token
                 else:
-                    output += token
-        else: 
-            output = self.gen_token(production)
-        return self.post_proc(output)
+                    output.append(token)
+            return self.post_proc(' '.join(output))
+        return self.gen_token(production)
 
     def gen_token(self, sym):
         if type(sym) == str:
