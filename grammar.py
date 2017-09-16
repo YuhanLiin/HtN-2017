@@ -9,12 +9,24 @@ class Many():
 class Rule():
     Self = object()
     punctuation = {}
-    def __init__(self, productions, post_proc=lambda s:s):
+    def __init__(self, *productions):
         self.productions = productions
-        self.post_proc = post_proc
+        self.post_proc = lambda s:s
+
+    def clone(self):
+        copy = Rule(*self.productions)
+        copy.post_proc = self.post_proc
+        return copy
 
     def transform(self, func):
-        return Rule(func(self.productions), self.post_proc)
+        copy = self.clone()
+        copy.productions = func(self.productions)
+        return copy
+
+    def set_post(self, func):
+        copy = self.clone()
+        copy.post_proc = func
+        return copy
 
     # # Constraint on the grammar. Int removes production positionally
     # def exclude(self, prod):
@@ -50,3 +62,6 @@ class Rule():
                 output += self.rule_or_self(sym.rule).generate()
             return output
         return self.rule_or_self(sym).generate()
+
+    def __repr__(self):
+        return self.productions.__repr__()
