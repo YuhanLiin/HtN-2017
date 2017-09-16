@@ -1,6 +1,8 @@
 from random import randint, random
 from bisect import bisect_left
 
+no_op = lambda x:x
+
 def join(lis):
     string = ''
     for s in lis:
@@ -20,11 +22,31 @@ class Many():
             output.append(rule.rule_or_self(self.rule).generate())
         return join(output)
 
+# Can contain strings, Manys, and Rules
+class Production():
+    def __init__(self, *symbols):
+        self.symbols = symbols
+        self.pre_proc = no_op
+
+    def generate(self, rule):
+        output = []
+        for symbol in self.symbols:
+            output.append(rule.gen_token(symbol))
+        self.pre_proc(output)
+        return join(output)
+
+    # Mutates output list on the spot with all symbols rendered
+    def set_pre(self, func):
+        self.pre_proc = func
+        return self
+
+
+# A rule consists of productions, strings, and Manys.
 class Rule():
     Self = object()
     def __init__(self, *productions):
         self.productions = productions
-        self.post_proc = lambda s:s
+        self.post_proc = no_op
         self.distribution = None
 
     def clone(self):
@@ -32,8 +54,8 @@ class Rule():
         copy.post_proc = self.post_proc
         return copy
 
-    def transform(self, func):
-        self.productions = func(self.productions)
+    def transform(self, process):
+        self.productions = process(self.productions)
         return self
 
     def set_post(self, func):
@@ -67,11 +89,8 @@ class Rule():
 
     def generate(self):
         production = self.productions[self.decide_prod()]
-        if type(production) == list:
-            output = []
-            for symbol in production:
-                output.append(self.gen_token(symbol))
-            return self.post_proc(join(output))
+        if type(production) == Production:
+            return self.post_proc(production.generate(self))
         return self.post_proc(self.gen_token(production))
 
     def gen_token(self, sym):
