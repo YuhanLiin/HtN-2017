@@ -16,11 +16,14 @@ class Many():
         self.low = lo
         self.high = hi
 
-    def generate(self, rule):   # Pass in rule in case a self reference is made
+    def generate(self):   # Pass in rule in case a self reference is made
         output = []
         for i in range(randint(self.low, self.high)):
             output.append(self.rule.generate())
         return join(output)
+
+def maybe(rule):
+    return Many(rule, 0, 1)
 
 # Can contain strings, Manys, and Rules
 class Production():
@@ -28,10 +31,10 @@ class Production():
         self.symbols = symbols
         self.pre_proc = no_op
 
-    def generate(self, rule):
+    def generate(self):
         output = []
         for symbol in self.symbols:
-            output.append(rule.gen_token(symbol))
+            output.append(gen_token(symbol))
         self.pre_proc(output)
         return join(output)
 
@@ -97,15 +100,15 @@ class Rule():
     def generate(self):
         production = self.productions[self.decide_prod()]
         if type(production) == Production:
-            return self.post_proc(production.generate(self))
-        return self.post_proc(self.gen_token(production))
-
-    def gen_token(self, sym):
-        if type(sym) == str:
-            return sym
-        if type(sym) == Many:
-            return sym.generate(self)
-        return sym.generate()
+            return self.post_proc(production.generate())
+        return self.post_proc(gen_token(production))
 
     def __repr__(self):
         return self.productions.__repr__()
+
+def gen_token(sym):
+    if type(sym) == str:
+        return sym
+    if type(sym) == Many:
+        return sym.generate()
+    return sym.generate()
