@@ -11,17 +11,17 @@ NounPhrasePlural, Preposition = Rule.declare_all(33)
 
 #import pdb; pdb.set_trace()
 # Definitions
-Verb.define('move', 'kick', 'hit', 'caress', 'use', 'super-punch', 'punch', 'take', 'make', 'have')
-SpeakVerb.define('say', 'cry', 'shout', 'scream', 'laugh', 'whisper')
-Adverb.define('quickly', 'slowly', 'furiously', 'lovingly')
-Noun.define('bird', 'dog', 'dinosaur', 'force', 'Masterball', 'alien')
-Adjective.define('large', 'tiny', 'crazy', 'psychopathic', 'black')
-Name.define('Dio', 'Lem', 'Hackerman', 'Benny', 'Luke')
+Verb.define('move', 'kick', 'hit', 'caress', 'use', 'super-punch', 'punch', 'take', 'touch', 'have')
+SpeakVerb.define('say', 'cry', 'shout', 'scream', 'laugh', 'whisper', 'mention')
+Adverb.define('quickly', 'slowly', 'furiously', 'lovingly', 'unknowingly', 'happily', 'angrily')
+Noun.define('bird', 'dog', 'dinosaur', 'force', 'Masterball', 'alien', 'dude', 'arrow', 'experience', 'requiem')
+Adjective.define('large', 'tiny', 'crazy', 'psychopathic', 'blue', 'red', 'sad', 'angry', 'cheerful', 'lit', 'gold')
+Name.define('Dio', 'Mr. Goose', 'Hackerman', 'Jojo', 'Luke')
 Article.define('the', 'this', 'that', 'this one', 'that one', 'a', 'some')
 ArticlePlural.define('the', 'these', 'those', 'many', 'some')
 
 NamePhrase.define(Production(',', Name))
-NounPhraseSingle.define(Production(Article, Many(Adjective, 0, 1), Noun))
+NounPhraseSingle.define(Production(Article, Many(Adjective, 0, 1), Noun), 'Gold Experience Requiem').set_distr(0.9, 0.11)
 NounPhrasePlural.define(Production(ArticlePlural, Many(Adjective, 0, 1), Noun.clone().transform(pluralize_all)))
 NounPhrase.define(NounPhrasePlural, NounPhraseSingle)
 Preposition.define(
@@ -122,7 +122,7 @@ Dialogue.define(
     Production(Many("muda", 3, 10), 'MUDA!'),
     Production(Many("ora", 3, 10), 'ORA!'),
     Production(Many("ha", 5, 12), '!'),
-).add_post(lambda s: s[0].upper() + s[1:])
+).add_post(lambda s: s[0].upper() + s[1:]).set_distr(0.4, 0.2, 0.2, 0.2)
 DialogueBefore = Dialogue.clone().add_post(lambda s: s.replace('.', ','))
 Speech.define(
     Production(Subject, maybe(Adverb), SpeakVerb, '"', Dialogue, '"',),
