@@ -1,5 +1,18 @@
-def pluralize(words):
-    return [word + 'es' if word.endswith('s') or word.endswith('ch') else word+'s' for word in words]
+def pluralize(word):
+    return word + 'es' if word.endswith('s') or word.endswith('ch') else word + 's'
+
+def pluralize_all(words):
+    return [pluralize(word) for word in words]
+
+def verbs_to_3rd(words):
+    out = []
+    for word in words:
+        if word == 'have':
+            word = 'has'
+        else:
+            word = pluralize(word)
+        out.append(word)
+    return out
 
 pronoun_subj_to_obj = {
     'I': ['me', 'us'], 
@@ -17,7 +30,9 @@ pronoun_to_self = {
     'he': 'himself',
     'she': 'herself',
     'they': 'themselves',
-    'it': 'itself'
+    'it': 'itself',
+    'we': 'ourselves',
+    'y\'all': 'yourselves'
 }
 
 # Return self version of pronoun object if there is a subj/obj conflict (he-him, I-me)
@@ -38,3 +53,8 @@ def replace_you(o):
         words[o] = resolve_pronouns('you', words[o])
         words[o] = resolve_pronouns('y\'all', words[o])
     return replacer
+
+def deleteIf(a, match, b):
+    def deleter(words):
+        if (words[a] in match): words[b] = ''
+    return deleter

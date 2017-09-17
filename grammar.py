@@ -29,18 +29,19 @@ def maybe(rule):
 class Production():
     def __init__(self, *symbols):
         self.symbols = symbols
-        self.pre_proc = no_op
+        self.pre_procs = []
 
     def generate(self):
         output = []
         for symbol in self.symbols:
             output.append(gen_token(symbol))
-        self.pre_proc(output)
+        for proc in self.pre_procs:
+            proc(output)
         return join(output)
 
     # Mutates output list on the spot with all symbols rendered
-    def set_pre(self, func):
-        self.pre_proc = func
+    def add_pre(self, func):
+        self.pre_procs.append(func)
         return self
 
 
@@ -52,7 +53,7 @@ class Rule():
 
     def __init__(self):
         self.productions = []
-        self.post_proc = no_op
+        self.post_procs = []
         self.distribution = None
 
     # Defines all productions
@@ -63,7 +64,7 @@ class Rule():
     def clone(self):
         copy = Rule()
         copy.productions = self.productions
-        copy.post_proc = self.post_proc
+        copy.post_procs = self.post_procs
         copy.distribution = self.distribution
         return copy
 
@@ -71,26 +72,18 @@ class Rule():
         self.productions = process(self.productions)
         return self
 
-    def set_post(self, func):
-        self.post_proc = func
+    def add_post(self, func):
+        self.post_procs.append(func)
         return self
 
     # Takes list of floats that add up to 1 representing chance of each production being generated
-    def set_distr(self, distribution):
+    def set_distr(self, *distribution):
         self.distribution = []
         prev = 0
         for chance in distribution:
             prev = prev + chance
             self.distribution.append(prev)
         return self
-
-    # # Constraint on the grammar. Int removes production positionally
-    # def exclude(self, prod):
-    #     if type(prod) == int:
-    #         newProd = [self.productions[i] for i in len(self.productions) if i!=prod]
-    #     else:
-    #         self.productions.remove(prod)
-    #     return self
 
     def decide_prod(self):
         if self.distribution:
@@ -100,8 +93,12 @@ class Rule():
     def generate(self):
         production = self.productions[self.decide_prod()]
         if type(production) == Production:
-            return self.post_proc(production.generate())
-        return self.post_proc(gen_token(production))
+            output = production.generate()
+        else:
+            output = gen_token(production)
+        for proc in self.post_procs:
+            output = proc(output)
+        return output
 
     def __repr__(self):
         return self.productions.__repr__()
