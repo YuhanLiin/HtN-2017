@@ -18,8 +18,12 @@ class Many():
 
     def generate(self):   # Pass in rule in case a self reference is made
         output = []
-        for i in range(randint(self.low, self.high)):
-            output.append(self.rule.generate())
+        if (type(self.rule) == str):
+            for i in range(randint(self.low, self.high)):
+                output.append(self.rule)
+        else:
+            for i in range(randint(self.low, self.high)):
+                output.append(self.rule.generate())
         return join(output)
 
 def maybe(rule):

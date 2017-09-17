@@ -3,17 +3,17 @@ from helpers import pluralize_all, resolve_pronouns, replace_pronouns, replace_y
 from random import random
 
 # Declarations
-Verb, Verb3rd, Adverb, Noun, Adjective, Name, NamePhrase, Subject3rd, Subject, Object, IfPhrase, WhilePhrase, WhenPhrase, \
+Verb, SpeakVerb, Adverb, Noun, Adjective, Name, NamePhrase, Subject3rd, Subject, IfPhrase, WhilePhrase, WhenPhrase, \
 Conditional, Question, BasicStatement, Command, Sentence, Novel, Article, ArticlePlural, ObjectSingle, ObjectPlural, \
-Statement = Rule.declare_all(24)
+Statement, Object, Dialogue, Speech, SentenceOrSpeech = Rule.declare_all(27)
 
 #import pdb; pdb.set_trace()
 # Definitions
 Verb.define('move', 'kick', 'hit', 'caress', 'use', 'super-punch', 'punch', 'take', 'make', 'have')
-Verb3rd = Verb.clone().transform(verbs_to_3rd)
+SpeakVerb.define('say', 'speak', 'cry', 'shout', 'scream', 'laugh', 'whisper')
 Adverb.define('quickly', 'slowly', 'furiously', 'lovingly')
 Noun.define('bird', 'dog', 'dinosaur', 'force', 'Masterball', 'alien')
-Adjective.define('large', 'tiny', 'crazy', 'psychopathic')
+Adjective.define('large', 'tiny', 'crazy', 'psychopathic', 'black')
 Name.define('Dio', 'Lem', 'Hackerman', 'Benny', 'Luke')
 Article.define('the', 'this', 'that', 'this one', 'that one', 'a', 'some')
 ArticlePlural.define('the', 'these', 'those', 'all these', 'all those', 'many', 'some')
@@ -32,7 +32,7 @@ Subject.define(
 ObjectSingle.define('you', 'her', 'it', 'me', 'him', Name, Production(Article, Many(Adjective, 0, 1), Noun))
 ObjectPlural.define(
     'you', 'them', 'y\'all', 'us', 
-    Production(ArticlePlural, Many(Adjective, 0, 1), Noun.clone().transform(pluralize_all))
+    Production(ArticlePlural, Many(Adjective, 0, 1), Noun.clone().transform(pluralize_all)),
 )
 Object.define(ObjectPlural, ObjectSingle)
 
@@ -75,7 +75,7 @@ BasicStatement.define(
         Subject, Many(Adverb, 0, 1), Verb, Object,
     ).add_pre(replace_pronouns(0, 3)).add_pre(deleteIf(2, {'has', 'have'}, 1)), 
     Production(
-        Subject3rd, Many(Adverb, 0, 1), Verb3rd, Object,
+        Subject3rd, Many(Adverb, 0, 1), Verb.clone().transform(verbs_to_3rd), Object,
     ).add_pre(replace_pronouns(0, 3)).add_pre(deleteIf(2, {'has', 'have'}, 1)),
     Production('I', 'am', ObjectSingle),
     Production(Subject, 'are', ObjectPlural).add_pre(replace_pronouns(0, 2)),
@@ -94,13 +94,29 @@ Command.define(
         maybe(Conditional), Many(NamePhrase, 0, 1),
     ).add_pre(replace_you(2)).add_pre(deleteIf(1, {'has', 'have'}, 3))
 )
+
+Dialogue.define(
+    Production(Sentence),
+    Production(Many("muda", 3, 10), 'MUDA!'),
+    Production(Many("ora", 3, 10), 'ORA!'),
+    Production(Many("ha", 5, 12)),
+).add_post(lambda s: s[0].upper() + s[1:])
+Speech.define(
+    Production(Subject, maybe(Adverb), SpeakVerb, '"', Dialogue, '"',),
+    Production(Subject3rd, maybe(Adverb), SpeakVerb.clone().transform(verbs_to_3rd), '"', Dialogue, '"',),
+    Production('"', Dialogue, '"', SpeakVerb, Subject),
+    Production('"', Dialogue, '"', SpeakVerb.clone().transform(verbs_to_3rd), Subject3rd),
+).add_post(lambda s: s[0].upper() + s[1:])
+
 Sentence.define(
     Production(Statement, Rule().define('.', '!').set_distr(0.71, 0.3)),
     Production(Question, '?'),
-    Production(Command, '!'),
-).add_post(lambda s: s[0].upper() + s[1:]).set_distr(1, 0, 0)
+    Production(Command, Rule().define('!', '.').set_distr(0.71, 0.3)),
+)
 
-Novel.define(Many(Sentence, 1, 10)).add_post(
+SentenceOrSpeech.define(Sentence, Production(Speech, '.')).set_distr(0.2, 0.8).add_post(lambda s: s[0].upper() + s[1:])
+
+Novel.define(Many(SentenceOrSpeech, 1, 10)).add_post(
     lambda s: s.replace(' ,', ',').replace(' .', '.').replace(' !', '!').replace(' ?', '?')
 )
 

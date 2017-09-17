@@ -1,5 +1,11 @@
 def pluralize(word):
-    return word + 'es' if word.endswith('s') or word.endswith('ch') else word + 's'
+    if word == 'say':
+        return 'says'
+    if word.endswith('s') or word.endswith('ch'):
+        return word + 'es'
+    elif word.endswith('y'):
+        return word[:-1] + 'ie'
+    return word + 's'
 
 def pluralize_all(words):
     return [pluralize(word) for word in words]
