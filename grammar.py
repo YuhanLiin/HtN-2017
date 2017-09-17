@@ -15,19 +15,37 @@ class Many():
         self.rule = rule
         self.low = lo
         self.high = hi
+        self.distribution = None
+
+    def decide_prod(self):
+        if not self.distribution:
+            return randint(self.low, self.high)
+        return bisect_left(self.distribution, random()) + self.low
+
 
     def generate(self):   # Pass in rule in case a self reference is made
         output = []
         if (type(self.rule) == str):
-            for i in range(randint(self.low, self.high)):
+            for i in range(self.decide_prod()):
                 output.append(self.rule)
         else:
-            for i in range(randint(self.low, self.high)):
+            for i in range(self.decide_prod()):
                 output.append(self.rule.generate())
         return join(output)
 
-def maybe(rule):
-    return Many(rule, 0, 1)
+    # Need to be same len as self.high - self.low
+    def set_distr(self, *distribution):
+        self.distribution = []
+        prev = 0
+        for chance in distribution:
+            prev = prev + chance
+            self.distribution.append(prev)
+        return self
+
+def maybe(rule, no=None, yes=None):
+    many = Many(rule, 0, 1)
+    if no: many = many.set_distr(no, yes)
+    return many
 
 # Can contain strings, Manys, and Rules
 class Production():

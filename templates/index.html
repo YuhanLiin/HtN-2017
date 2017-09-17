@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Random Sentence Generator</title>
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.min.js"
+      integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+      crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8 text-center">
+            <h1 id="title" class="text-center">Your Randomly Generated Tale</h1>
+            <p id="text" style="padding-top: 20px; padding-bottom: 20px;"></p>
+            <button id="another" class="btn btn-primary">Another One</button>
+        </div>
+        <div class="col-md-2"></div>
+    </div>
+</body>
+
+<script type="text/javascript">
+    function getNovel(){
+        $.get('/api', function(data){
+            $('#text').text(data)
+        })
+    }
+    $('#another').click(getNovel)
+    $(document).ready(getNovel)
+</script>
+</html>

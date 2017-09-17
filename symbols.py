@@ -1,5 +1,6 @@
 from grammar import Rule, Many, Production, maybe
-from helpers import pluralize_all, resolve_pronouns, replace_pronouns, replace_you, verbs_to_3rd, deleteIf, prevent_collection_repeat
+from helpers import pluralize_all, resolve_pronouns, replace_pronouns, replace_you, verbs_to_3rd, deleteIf, \
+prevent_collection_repeat, format_quotes
 from random import random
 
 # Declarations
@@ -16,8 +17,8 @@ Adverb.define('quickly', 'slowly', 'furiously', 'lovingly')
 Noun.define('bird', 'dog', 'dinosaur', 'force', 'Masterball', 'alien')
 Adjective.define('large', 'tiny', 'crazy', 'psychopathic', 'black')
 Name.define('Dio', 'Lem', 'Hackerman', 'Benny', 'Luke')
-Article.define('the', 'this', 'that', 'this one', 'that one', 'a', 'some', 'no')
-ArticlePlural.define('the', 'these', 'those', 'all these', 'all those', 'many', 'some', 'no')
+Article.define('the', 'this', 'that', 'this one', 'that one', 'a', 'some')
+ArticlePlural.define('the', 'these', 'those', 'many', 'some')
 
 NamePhrase.define(Production(',', Name))
 NounPhraseSingle.define(Production(Article, Many(Adjective, 0, 1), Noun))
@@ -31,65 +32,65 @@ Preposition.define(
 Subject3rd.define(
     Production(NounPhraseSingle, maybe(Preposition)),
     'he', 'she', 'it', Name
-)
+).set_distr(0.3, 0.1, 0.1, 0.2, 0.31)
 SubjectPlural.define(
     'you', 'they', 'we', 'y\'all',
     Production(NounPhrasePlural, maybe(Preposition))
-)
+).set_distr(0.15, 0.15, 0.15, 0.15, 0.41)
 Subject.define(Production(
-    SubjectPlural, Many(Production('and', Rule().define(SubjectPlural, Subject3rd)), 0, 2)
+    SubjectPlural, Many(Production('and', Rule().define(SubjectPlural, Subject3rd)), 0, 2).set_distr(0.7, 0.2, 0.1)
 )).add_post(prevent_collection_repeat)
 
 ObjectSingle.define(
-    'you', 'her', 'it', 'me', 'him', Name, 
     Production(NounPhraseSingle, maybe(Preposition)),
-)
+    'you', 'her', 'it', 'me', 'him', Name, 
+).set_distr(0.3, 0.1, 0.1, 0.1, 0.1, 0.31)
 ObjectPlural.define(
     'you', 'them', 'y\'all', 'us', 
     Production(NounPhrasePlural, maybe(Preposition)),
-)
+).set_distr(0.15, 0.15, 0.15, 0.15, 0.41)
 ObjectMulti.define(Production(
-    ObjectPlural, Many(Production('and', Rule().define(ObjectPlural, ObjectSingle)), 0, 2)
+    ObjectPlural, Many(Production('and', Rule().define(ObjectPlural, ObjectSingle)), 0, 2).set_distr(0.7, 0.2, 0.1)
 )).add_post(prevent_collection_repeat)
 Object.define(ObjectMulti, ObjectSingle)
 
 IfPhrase.define(
     Production('if', BasicStatement), 
-    Production('only if', BasicStatement), 
-    Production('if and only if', BasicStatement)
+    Production('unless', BasicStatement), 
 )
-WhenPhrase.define(Production('when', BasicStatement),)
+WhenPhrase.define(Production('when', BasicStatement), Production('until', BasicStatement))
 WhilePhrase.define(Production('while', BasicStatement), Production('as', BasicStatement))
 Conditional.define(
-    Production(IfPhrase, maybe(WhilePhrase), maybe(WhenPhrase)),
-    Production(IfPhrase, maybe(WhenPhrase), maybe(WhilePhrase)),
-    Production(WhenPhrase, maybe(WhilePhrase), maybe(IfPhrase)),
-    Production(WhenPhrase, maybe(IfPhrase), maybe(WhilePhrase)),
-    Production(WhilePhrase, maybe(WhenPhrase), maybe(IfPhrase)),
-    Production(WhilePhrase, maybe(IfPhrase), maybe(WhenPhrase)),
+    Production(IfPhrase, maybe(WhilePhrase, 0.7, 0.3), maybe(WhenPhrase, 0.7, 0.3)),
+    Production(IfPhrase, maybe(WhenPhrase, 0.7, 0.3), maybe(WhilePhrase, 0.7, 0.3)),
+    Production(WhenPhrase, maybe(WhilePhrase, 0.7, 0.3), maybe(IfPhrase, 0.7, 0.3)),
+    Production(WhenPhrase, maybe(IfPhrase, 0.7, 0.3), maybe(WhilePhrase, 0.7, 0.3)),
+    Production(WhilePhrase, maybe(WhenPhrase, 0.7, 0.3), maybe(IfPhrase, 0.7, 0.3)),
+    Production(WhilePhrase, maybe(IfPhrase, 0.7, 0.3), maybe(WhenPhrase, 0.7, 0.3)),
 )
 
 Question.define(
     Production(
-        maybe(Production(Conditional, ',')), 
+        maybe(Production(Conditional, ','), 0.7, 0.3), 
         'does', Subject3rd, Verb, Object, Many(Adverb, 0, 1),
-        maybe(Conditional),
+        maybe(Conditional, 0.7, 0.3),
     ).add_pre(replace_pronouns(2, 4)).add_pre(deleteIf(3, {'has', 'have'}, 5)), 
     Production(
-        maybe(Production(Conditional, ',')), 
+        maybe(Production(Conditional, ','), 0.7, 0.3), 
         'do', Subject, Verb, Object, Many(Adverb, 0, 1),
-        maybe(Conditional),
+        maybe(Conditional, 0.7, 0.3),
     ).add_pre(replace_pronouns(2, 4)).add_pre(deleteIf(3, {'has', 'have'}, 5)),
     Production(
-        maybe(Production(Conditional, ',')), 'am', 'I', ObjectSingle, maybe(Conditional),
+        maybe(Production(Conditional, ','), 0.7, 0.3), 'am', 'I', ObjectSingle, maybe(Conditional, 0.7, 0.3),
     ).add_pre(replace_pronouns(2, 3)),
     Production(
-        maybe(Production(Conditional, ',')), 'is', Subject3rd, ObjectSingle, maybe(Conditional),
+        maybe(Production(Conditional, ','), 0.7, 0.3), 'is', Subject3rd, ObjectSingle, maybe(Conditional, 0.7, 0.3),
     ).add_pre(replace_pronouns(2, 3)),
     Production(
-        maybe(Production(Conditional, ',')), 'are', Subject, ObjectMulti, maybe(Conditional),
+        maybe(Production(Conditional, ','), 0.7, 0.3), 'are', Subject, ObjectMulti, maybe(Conditional, 0.7, 0.3),
     ).add_pre(replace_pronouns(2, 3)),
-).set_distr(0.3, 0.3, 0.1001, 0.15, 0.15)
+    "Why", "What is this", 'How the hell'
+).set_distr(0.2, 0.2, 0.1001, 0.1, 0.1, 0.1, 0.1)
 
 BasicStatement.define(
     Production(
@@ -101,18 +102,18 @@ BasicStatement.define(
     Production('I', 'am', ObjectSingle),
     Production(Subject, 'are', ObjectMulti).add_pre(replace_pronouns(0, 2)),
     Production(Subject3rd, 'is', ObjectSingle).add_pre(replace_pronouns(0, 2)),
-).set_distr(0.3, 0.3, 0.1001, 0.15, 0.15
+).set_distr(0.38, 0.38, 0.05, 0.1, 0.1
 ).add_post(
-    lambda s: s.replace('it is', 'it\'s').replace(' is', '\'s').replace('they are', 'they\'re').replace('we are', 'we\'re')
+    lambda s: s.replace('it is', 'it\'s').replace('they are', 'they\'re').replace('we are', 'we\'re')
         if random() > 0.5 else s
 )
-Statement.define(Production(maybe(Production(Conditional, ',')), BasicStatement, maybe(Conditional)))
+Statement.define(Production(maybe(Production(Conditional, ','), 0.7, 0.3), BasicStatement, maybe(Conditional, 0.7, 0.3)))
 
 Command.define(
     Production(
-        maybe(Production(Conditional, ',')), 
+        maybe(Production(Conditional, ','), 0.7, 0.3), 
         Verb, Object, Many(Adverb, 0, 1), 
-        maybe(Conditional), Many(NamePhrase, 0, 1),
+        maybe(Conditional, 0.7, 0.3), Many(NamePhrase, 0, 1),
     ).add_pre(replace_you(2)).add_pre(deleteIf(1, {'has', 'have'}, 3))
 )
 
@@ -127,19 +128,16 @@ Speech.define(
     Production(Subject3rd, maybe(Adverb), SpeakVerb.clone().transform(verbs_to_3rd), '"', Dialogue, '"',),
     Production('"', Dialogue, '"', SpeakVerb, Subject),
     Production('"', Dialogue, '"', SpeakVerb.clone().transform(verbs_to_3rd), Subject3rd),
-).add_post(lambda s: s[0].upper() + s[1:])
+).add_post(lambda s: s[0].upper() + s[1:]).add_post(format_quotes)
 
 Sentence.define(
     Production(Statement, Rule().define('.', '!').set_distr(0.71, 0.3)),
     Production(Question, '?'),
     Production(Command, Rule().define('!', '.').set_distr(0.71, 0.3)),
-)
+).set_distr(0.5, 0.25, 0.25)
 
 SentenceOrSpeech.define(Sentence, Production(Speech, '.')).set_distr(0.61, 0.4).add_post(lambda s: s[0].upper() + s[1:])
 
 Novel.define(Many(SentenceOrSpeech, 1, 10)).add_post(
     lambda s: s.replace(' ,', ',').replace(' .', '.').replace(' !', '!').replace(' ?', '?')
 )
-
-
-print(Novel.generate())

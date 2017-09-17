@@ -1,12 +1,12 @@
 from grammar import join
 
 def pluralize(word):
-    if word == 'say':
-        return 'says'
-    if word.endswith('s') or word.endswith('ch'):
+    if word.endswith('ay'):
+        return word + 's'
+    elif word.endswith('s') or word.endswith('ch'):
         return word + 'es'
     elif word.endswith('y'):
-        return word[:-1] + 'ie'
+        return word[:-1] + 'ies'
     return word + 's'
 
 def pluralize_all(words):
@@ -70,9 +70,23 @@ def deleteIf(a, match, b):
 def prevent_collection_repeat(text):
     words = text.split(' and ')
     if len(words) > 1:
-        seen = []
+        seen = set()
+        out = []
         for word in words:
             if word not in seen:
-                seen.append(word)
-        return ' and '.join(seen)
+                out.append(word)
+                seen.add(word)
+                if (word == 'we' or word == 'I' or word == 'me'): 
+                    seen.update(['I', 'we', 'me'])
+                elif (word == 'you' or 'y\'all'):
+                    seen.update(['you', 'y\'all'])
+        return ' and '.join(out)
+    return text
+
+import re
+speech = re.compile(r'" (.*) "')
+def format_quotes(text):
+    match = speech.search(text)
+    if match:
+        return re.sub(speech, '"%s"' % (match.groups(0)), text)
     return text
