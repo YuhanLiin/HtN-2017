@@ -68,7 +68,7 @@ def deleteIf(a, match, b):
     return deleter
 
 def prevent_collection_repeat(text):
-    words = text.split(' and ')
+    words = text.split(' , ')
     if len(words) > 1:
         seen = set()
         out = []
@@ -80,7 +80,9 @@ def prevent_collection_repeat(text):
                     seen.update(['I', 'we', 'me'])
                 elif (word == 'you' or 'y\'all'):
                     seen.update(['you', 'y\'all'])
-        return ' and '.join(out)
+        if len(out) <= 2:
+            return ' and '.join(out)
+        return ' , '.join(out[:-1]) + ' , and ' + out[-1]
     return text
 
 import re

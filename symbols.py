@@ -36,7 +36,7 @@ SubjectPlural.define(
     Production(NounPhrasePlural, maybe(PrepPhrase))
 ).set_distr(0.15, 0.15, 0.15, 0.15, 0.41)
 Subject.define(Production(
-    SubjectPlural, Many(Production('and', Rule().define(SubjectPlural, Subject3rd)), 0, 2).set_distr(0.7, 0.2, 0.1)
+    SubjectPlural, Many(Production(',', Rule().define(SubjectPlural, Subject3rd)), 0, 2).set_distr(0.7, 0.2, 0.1)
 )).add_post(prevent_collection_repeat)
 
 ObjectSingle.define(
@@ -48,7 +48,7 @@ ObjectPlural.define(
     Production(NounPhrasePlural, maybe(PrepPhrase)),
 ).set_distr(0.15, 0.15, 0.15, 0.15, 0.41)
 ObjectMulti.define(Production(
-    ObjectPlural, Many(Production('and', Rule().define(ObjectPlural, ObjectSingle)), 0, 2).set_distr(0.7, 0.2, 0.1)
+    ObjectPlural, Many(Production(',', Rule().define(ObjectPlural, ObjectSingle)), 0, 2).set_distr(0.7, 0.2, 0.1)
 )).add_post(prevent_collection_repeat)
 Object.define(ObjectMulti, ObjectSingle)
 
