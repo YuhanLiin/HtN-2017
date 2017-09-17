@@ -7,47 +7,45 @@ from random import random
 Verb, SpeakVerb, Adverb, Noun, Adjective, Name, NamePhrase, Subject3rd, Subject, IfPhrase, WhilePhrase, WhenPhrase, \
 Conditional, Question, BasicStatement, Command, Sentence, Novel, Article, ArticlePlural, ObjectSingle, ObjectPlural, \
 Statement, Object, Dialogue, Speech, SentenceOrSpeech, SubjectPlural, ObjectMulti, NounPhrase, NounPhraseSingle, \
-NounPhrasePlural, Preposition = Rule.declare_all(33)
+NounPhrasePlural, PrepPhrase, Preposition = Rule.declare_all(34)
 
 #import pdb; pdb.set_trace()
 # Definitions
-Verb.define('move', 'kick', 'hit', 'caress', 'use', 'super-punch', 'punch', 'take', 'touch', 'have')
-SpeakVerb.define('say', 'cry', 'shout', 'scream', 'laugh', 'whisper', 'mention')
+Verb.define('move', 'kick', 'hit', 'caress', 'shoot', 'programs', 'punch', 'take', 'touch', 'have', 'stroke', 'nibble')
+SpeakVerb.define('say', 'cry', 'shout', 'scream', 'laugh', 'whisper', 'mention', 'think', 'scribble')
 Adverb.define('quickly', 'slowly', 'furiously', 'lovingly', 'unknowingly', 'happily', 'angrily')
-Noun.define('bird', 'dog', 'dinosaur', 'force', 'Masterball', 'alien', 'dude', 'arrow', 'experience', 'requiem')
-Adjective.define('large', 'tiny', 'crazy', 'psychopathic', 'blue', 'red', 'sad', 'angry', 'cheerful', 'lit', 'gold')
+Noun.define('bird', 'dog', 'dinosaur', 'force', 'Masterball', 'alien', 'dude', 'arrow', 'experience', 'demon', 'candy')
+Adjective.define('large', 'tiny', 'crazy', 'psychopathic', 'blue', 'ancient', 'sad', 'angry', 'cheerful', 'lit', 'gold')
 Name.define('Dio', 'Mr. Goose', 'Hackerman', 'Jojo', 'Luke')
 Article.define('the', 'this', 'that', 'this one', 'that one', 'a', 'some')
 ArticlePlural.define('the', 'these', 'those', 'many', 'some')
+Preposition.define('of', 'from', 'in', 'by', 'with', 'without', 'within', 'inside', 'outside')
 
 NamePhrase.define(Production(',', Name))
-NounPhraseSingle.define(Production(Article, Many(Adjective, 0, 1), Noun), 'Gold Experience Requiem').set_distr(0.9, 0.11)
+NounPhraseSingle.define(Production(Article, Many(Adjective, 0, 1), Noun))
 NounPhrasePlural.define(Production(ArticlePlural, Many(Adjective, 0, 1), Noun.clone().transform(pluralize_all)))
 NounPhrase.define(NounPhrasePlural, NounPhraseSingle)
-Preposition.define(
-    Production('of', NounPhrase), Production('in', NounPhrase), Production('by', NounPhrase),
-    Production('with', NounPhrase), Production('without', NounPhrase), Production('within', NounPhrase),
-)
+PrepPhrase.define(Production(Preposition, NounPhrase))
 
 Subject3rd.define(
-    Production(NounPhraseSingle, maybe(Preposition)),
+    Production(NounPhraseSingle, maybe(PrepPhrase)),
     'he', 'she', 'it', Name
 ).set_distr(0.3, 0.1, 0.1, 0.2, 0.31)
 SubjectPlural.define(
     'you', 'they', 'we', 'y\'all',
-    Production(NounPhrasePlural, maybe(Preposition))
+    Production(NounPhrasePlural, maybe(PrepPhrase))
 ).set_distr(0.15, 0.15, 0.15, 0.15, 0.41)
 Subject.define(Production(
     SubjectPlural, Many(Production('and', Rule().define(SubjectPlural, Subject3rd)), 0, 2).set_distr(0.7, 0.2, 0.1)
 )).add_post(prevent_collection_repeat)
 
 ObjectSingle.define(
-    Production(NounPhraseSingle, maybe(Preposition)),
+    Production(NounPhraseSingle, maybe(PrepPhrase)),
     'you', 'her', 'it', 'me', 'him', Name, 
 ).set_distr(0.3, 0.1, 0.1, 0.1, 0.1, 0.31)
 ObjectPlural.define(
     'you', 'them', 'y\'all', 'us', 
-    Production(NounPhrasePlural, maybe(Preposition)),
+    Production(NounPhrasePlural, maybe(PrepPhrase)),
 ).set_distr(0.15, 0.15, 0.15, 0.15, 0.41)
 ObjectMulti.define(Production(
     ObjectPlural, Many(Production('and', Rule().define(ObjectPlural, ObjectSingle)), 0, 2).set_distr(0.7, 0.2, 0.1)
