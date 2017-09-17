@@ -11,7 +11,7 @@ NounPhrasePlural, PrepPhrase, Preposition = Rule.declare_all(34)
 
 #import pdb; pdb.set_trace()
 # Definitions
-Verb.define('move', 'kick', 'hit', 'caress', 'shoot', 'programs', 'punch', 'take', 'touch', 'have', 'stroke', 'nibble')
+Verb.define('move', 'kick', 'hit', 'caress', 'shoot', 'program', 'punch', 'take', 'touch', 'have', 'stroke', 'nibble')
 SpeakVerb.define('say', 'cry', 'shout', 'scream', 'laugh', 'whisper', 'mention', 'think', 'scribble')
 Adverb.define('quickly', 'slowly', 'furiously', 'lovingly', 'unknowingly', 'happily', 'angrily')
 Noun.define('bird', 'dog', 'dinosaur', 'force', 'Masterball', 'alien', 'dude', 'arrow', 'experience', 'demon', 'candy')

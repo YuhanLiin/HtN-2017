@@ -86,7 +86,7 @@ class Rule():
     def clone(self):
         copy = Rule()
         copy.productions = self.productions
-        copy.post_procs = self.post_procs
+        copy.post_procs = list(self.post_procs)
         copy.distribution = self.distribution
         return copy
 
