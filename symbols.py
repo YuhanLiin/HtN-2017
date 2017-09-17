@@ -1,11 +1,11 @@
 from grammar import Rule, Many, Production, maybe
-from helpers import pluralize_all, resolve_pronouns, replace_pronouns, replace_you, verbs_to_3rd, deleteIf
+from helpers import pluralize_all, resolve_pronouns, replace_pronouns, replace_you, verbs_to_3rd, deleteIf, prevent_collection_repeat
 from random import random
 
 # Declarations
 Verb, SpeakVerb, Adverb, Noun, Adjective, Name, NamePhrase, Subject3rd, Subject, IfPhrase, WhilePhrase, WhenPhrase, \
 Conditional, Question, BasicStatement, Command, Sentence, Novel, Article, ArticlePlural, ObjectSingle, ObjectPlural, \
-Statement, Object, Dialogue, Speech, SentenceOrSpeech = Rule.declare_all(27)
+Statement, Object, Dialogue, Speech, SentenceOrSpeech, SubjectPlural, ObjectMulti = Rule.declare_all(29)
 
 #import pdb; pdb.set_trace()
 # Definitions
@@ -23,20 +23,32 @@ Subject3rd.define(
     Production(Article, Many(Adjective, 0, 1), Noun),
     'he', 'she', 'it', Name
 )
-Subject.define(
+SubjectPlural.define(
     'you', 'they', 'we', 'y\'all',
     Production(ArticlePlural, Many(Adjective, 0, 1), 
         Noun.clone().transform(pluralize_all)
     )
 )
+Subject.define(Production(
+    Rule().define(SubjectPlural, Subject3rd), 
+    Many(Production('and', Rule().define(SubjectPlural, Subject3rd)), 1, 2)
+)).add_post(prevent_collection_repeat)
 ObjectSingle.define('you', 'her', 'it', 'me', 'him', Name, Production(Article, Many(Adjective, 0, 1), Noun))
 ObjectPlural.define(
     'you', 'them', 'y\'all', 'us', 
     Production(ArticlePlural, Many(Adjective, 0, 1), Noun.clone().transform(pluralize_all)),
 )
-Object.define(ObjectPlural, ObjectSingle)
+ObjectMulti.define(Production(
+    Rule().define(ObjectPlural, ObjectSingle), 
+    Many(Production('and', Rule().define(ObjectPlural, ObjectSingle)), 1, 2)
+)).add_post(prevent_collection_repeat)
+Object.define(ObjectMulti, ObjectSingle)
 
-IfPhrase.define(Production('if', BasicStatement), Production('only if', BasicStatement), Production('if and only if', BasicStatement))
+IfPhrase.define(
+    Production('if', BasicStatement), 
+    Production('only if', BasicStatement), 
+    Production('if and only if', BasicStatement)
+)
 WhenPhrase.define(Production('when', BasicStatement),)
 WhilePhrase.define(Production('while', BasicStatement), Production('as', BasicStatement))
 Conditional.define(
@@ -66,7 +78,7 @@ Question.define(
         maybe(Production(Conditional, ',')), 'is', Subject3rd, ObjectSingle, maybe(Conditional),
     ).add_pre(replace_pronouns(2, 3)),
     Production(
-        maybe(Production(Conditional, ',')), 'are', Subject, ObjectPlural, maybe(Conditional),
+        maybe(Production(Conditional, ',')), 'are', Subject, ObjectMulti, maybe(Conditional),
     ).add_pre(replace_pronouns(2, 3)),
 ).set_distr(0.3, 0.3, 0.1001, 0.15, 0.15)
 
@@ -78,7 +90,7 @@ BasicStatement.define(
         Subject3rd, Many(Adverb, 0, 1), Verb.clone().transform(verbs_to_3rd), Object,
     ).add_pre(replace_pronouns(0, 3)).add_pre(deleteIf(2, {'has', 'have'}, 1)),
     Production('I', 'am', ObjectSingle),
-    Production(Subject, 'are', ObjectPlural).add_pre(replace_pronouns(0, 2)),
+    Production(Subject, 'are', ObjectMulti).add_pre(replace_pronouns(0, 2)),
     Production(Subject3rd, 'is', ObjectSingle).add_pre(replace_pronouns(0, 2)),
 ).set_distr(0.3, 0.3, 0.1001, 0.15, 0.15
 ).add_post(
@@ -114,7 +126,7 @@ Sentence.define(
     Production(Command, Rule().define('!', '.').set_distr(0.71, 0.3)),
 )
 
-SentenceOrSpeech.define(Sentence, Production(Speech, '.')).set_distr(0.2, 0.8).add_post(lambda s: s[0].upper() + s[1:])
+SentenceOrSpeech.define(Sentence, Production(Speech, '.')).set_distr(0.61, 0.4).add_post(lambda s: s[0].upper() + s[1:])
 
 Novel.define(Many(SentenceOrSpeech, 1, 10)).add_post(
     lambda s: s.replace(' ,', ',').replace(' .', '.').replace(' !', '!').replace(' ?', '?')

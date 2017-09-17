@@ -1,3 +1,5 @@
+from grammar import join
+
 def pluralize(word):
     if word == 'say':
         return 'says'
@@ -64,3 +66,13 @@ def deleteIf(a, match, b):
     def deleter(words):
         if (words[a] in match): words[b] = ''
     return deleter
+
+def prevent_collection_repeat(text):
+    words = text.split(' and ')
+    if len(words) > 1:
+        seen = []
+        for word in words:
+            if word not in seen:
+                seen.append(word)
+        return ' and '.join(seen)
+    return text
