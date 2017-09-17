@@ -4,7 +4,8 @@ from random import random
 
 # Declarations
 Verb, Verb3rd, Adverb, Noun, Adjective, Name, NamePhrase, Subject3rd, Subject, Object, IfPhrase, WhilePhrase, WhenPhrase, \
-Conditional, Question, Statement, Command, Sentence, Novel, Article, ArticlePlural, ObjectSingle, ObjectPlural = Rule.declare_all(23)
+Conditional, Question, BasicStatement, Command, Sentence, Novel, Article, ArticlePlural, ObjectSingle, ObjectPlural, \
+Statement = Rule.declare_all(24)
 
 #import pdb; pdb.set_trace()
 # Definitions
@@ -35,9 +36,9 @@ ObjectPlural.define(
 )
 Object.define(ObjectPlural, ObjectSingle)
 
-IfPhrase.define(Production('if', Statement), Production('only if', Statement), Production('if and only if', Statement))
-WhenPhrase.define(Production('when', Statement),)
-WhilePhrase.define(Production('while', Statement), Production('as', Statement))
+IfPhrase.define(Production('if', BasicStatement), Production('only if', BasicStatement), Production('if and only if', BasicStatement))
+WhenPhrase.define(Production('when', BasicStatement),)
+WhilePhrase.define(Production('while', BasicStatement), Production('as', BasicStatement))
 Conditional.define(
     Production(IfPhrase, maybe(WhilePhrase), maybe(WhenPhrase)),
     Production(IfPhrase, maybe(WhenPhrase), maybe(WhilePhrase)),
@@ -69,7 +70,7 @@ Question.define(
     ).add_pre(replace_pronouns(2, 3)),
 ).set_distr(0.3, 0.3, 0.1001, 0.15, 0.15)
 
-Statement.define(
+BasicStatement.define(
     Production(
         Subject, Many(Adverb, 0, 1), Verb, Object,
     ).add_pre(replace_pronouns(0, 3)).add_pre(deleteIf(2, {'has', 'have'}, 1)), 
@@ -84,6 +85,8 @@ Statement.define(
     lambda s: s.replace('it is', 'it\'s').replace(' is', '\'s').replace('they are', 'they\'re').replace('we are', 'we\'re')
         if random() > 0.5 else s
 )
+Statement.define(Production(maybe(Production(Conditional, ',')), BasicStatement, maybe(Conditional)))
+
 Command.define(
     Production(
         maybe(Production(Conditional, ',')), 
@@ -92,12 +95,14 @@ Command.define(
     ).add_pre(replace_you(2)).add_pre(deleteIf(1, {'has', 'have'}, 3))
 )
 Sentence.define(
-    Production(Statement, '.'),
+    Production(Statement, Rule().define('.', '!').set_distr(0.71, 0.3)),
     Production(Question, '?'),
     Production(Command, '!'),
-).add_post(lambda s: s[0].upper() + s[1:])#.set_distr(001, 0.5, 0.5)
+).add_post(lambda s: s[0].upper() + s[1:]).set_distr(1, 0, 0)
 
-Novel.define(Many(Sentence, 1, 10))
+Novel.define(Many(Sentence, 1, 10)).add_post(
+    lambda s: s.replace(' ,', ',').replace(' .', '.').replace(' !', '!').replace(' ?', '?')
+)
 
 
 print(Novel.generate())
