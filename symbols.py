@@ -12,7 +12,7 @@ NounPhrasePlural, Preposition = Rule.declare_all(33)
 #import pdb; pdb.set_trace()
 # Definitions
 Verb.define('move', 'kick', 'hit', 'caress', 'use', 'super-punch', 'punch', 'take', 'make', 'have')
-SpeakVerb.define('say', 'speak', 'cry', 'shout', 'scream', 'laugh', 'whisper')
+SpeakVerb.define('say', 'cry', 'shout', 'scream', 'laugh', 'whisper')
 Adverb.define('quickly', 'slowly', 'furiously', 'lovingly')
 Noun.define('bird', 'dog', 'dinosaur', 'force', 'Masterball', 'alien')
 Adjective.define('large', 'tiny', 'crazy', 'psychopathic', 'black')
@@ -121,13 +121,14 @@ Dialogue.define(
     Production(Sentence),
     Production(Many("muda", 3, 10), 'MUDA!'),
     Production(Many("ora", 3, 10), 'ORA!'),
-    Production(Many("ha", 5, 12)),
+    Production(Many("ha", 5, 12), '!'),
 ).add_post(lambda s: s[0].upper() + s[1:])
+DialogueBefore = Dialogue.clone().add_post(lambda s: s.replace('.', ','))
 Speech.define(
     Production(Subject, maybe(Adverb), SpeakVerb, '"', Dialogue, '"',),
     Production(Subject3rd, maybe(Adverb), SpeakVerb.clone().transform(verbs_to_3rd), '"', Dialogue, '"',),
-    Production('"', Dialogue, '"', SpeakVerb, Subject),
-    Production('"', Dialogue, '"', SpeakVerb.clone().transform(verbs_to_3rd), Subject3rd),
+    Production('"', DialogueBefore, '"', Subject, SpeakVerb, '.'),
+    Production('"', DialogueBefore, '"', Subject3rd, SpeakVerb.clone().transform(verbs_to_3rd), '.'),
 ).add_post(lambda s: s[0].upper() + s[1:]).add_post(format_quotes)
 
 Sentence.define(
@@ -136,7 +137,7 @@ Sentence.define(
     Production(Command, Rule().define('!', '.').set_distr(0.71, 0.3)),
 ).set_distr(0.5, 0.25, 0.25)
 
-SentenceOrSpeech.define(Sentence, Production(Speech, '.')).set_distr(0.61, 0.4).add_post(lambda s: s[0].upper() + s[1:])
+SentenceOrSpeech.define(Sentence, Speech).set_distr(0.61, 0.4).add_post(lambda s: s[0].upper() + s[1:])
 
 Novel.define(Many(SentenceOrSpeech, 1, 10)).add_post(
     lambda s: s.replace(' ,', ',').replace(' .', '.').replace(' !', '!').replace(' ?', '?')
