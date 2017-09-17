@@ -5,7 +5,8 @@ from random import random
 # Declarations
 Verb, SpeakVerb, Adverb, Noun, Adjective, Name, NamePhrase, Subject3rd, Subject, IfPhrase, WhilePhrase, WhenPhrase, \
 Conditional, Question, BasicStatement, Command, Sentence, Novel, Article, ArticlePlural, ObjectSingle, ObjectPlural, \
-Statement, Object, Dialogue, Speech, SentenceOrSpeech, SubjectPlural, ObjectMulti = Rule.declare_all(29)
+Statement, Object, Dialogue, Speech, SentenceOrSpeech, SubjectPlural, ObjectMulti, NounPhrase, NounPhraseSingle, \
+NounPhrasePlural, Preposition = Rule.declare_all(33)
 
 #import pdb; pdb.set_trace()
 # Definitions
@@ -15,32 +16,40 @@ Adverb.define('quickly', 'slowly', 'furiously', 'lovingly')
 Noun.define('bird', 'dog', 'dinosaur', 'force', 'Masterball', 'alien')
 Adjective.define('large', 'tiny', 'crazy', 'psychopathic', 'black')
 Name.define('Dio', 'Lem', 'Hackerman', 'Benny', 'Luke')
-Article.define('the', 'this', 'that', 'this one', 'that one', 'a', 'some')
-ArticlePlural.define('the', 'these', 'those', 'all these', 'all those', 'many', 'some')
+Article.define('the', 'this', 'that', 'this one', 'that one', 'a', 'some', 'no')
+ArticlePlural.define('the', 'these', 'those', 'all these', 'all those', 'many', 'some', 'no')
 
 NamePhrase.define(Production(',', Name))
+NounPhraseSingle.define(Production(Article, Many(Adjective, 0, 1), Noun))
+NounPhrasePlural.define(Production(ArticlePlural, Many(Adjective, 0, 1), Noun.clone().transform(pluralize_all)))
+NounPhrase.define(NounPhrasePlural, NounPhraseSingle)
+Preposition.define(
+    Production('of', NounPhrase), Production('in', NounPhrase), Production('by', NounPhrase),
+    Production('with', NounPhrase), Production('without', NounPhrase), Production('within', NounPhrase),
+)
+
 Subject3rd.define(
-    Production(Article, Many(Adjective, 0, 1), Noun),
+    Production(NounPhraseSingle, maybe(Preposition)),
     'he', 'she', 'it', Name
 )
 SubjectPlural.define(
     'you', 'they', 'we', 'y\'all',
-    Production(ArticlePlural, Many(Adjective, 0, 1), 
-        Noun.clone().transform(pluralize_all)
-    )
+    Production(NounPhrasePlural, maybe(Preposition))
 )
 Subject.define(Production(
-    Rule().define(SubjectPlural, Subject3rd), 
-    Many(Production('and', Rule().define(SubjectPlural, Subject3rd)), 1, 2)
+    SubjectPlural, Many(Production('and', Rule().define(SubjectPlural, Subject3rd)), 0, 2)
 )).add_post(prevent_collection_repeat)
-ObjectSingle.define('you', 'her', 'it', 'me', 'him', Name, Production(Article, Many(Adjective, 0, 1), Noun))
+
+ObjectSingle.define(
+    'you', 'her', 'it', 'me', 'him', Name, 
+    Production(NounPhraseSingle, maybe(Preposition)),
+)
 ObjectPlural.define(
     'you', 'them', 'y\'all', 'us', 
-    Production(ArticlePlural, Many(Adjective, 0, 1), Noun.clone().transform(pluralize_all)),
+    Production(NounPhrasePlural, maybe(Preposition)),
 )
 ObjectMulti.define(Production(
-    Rule().define(ObjectPlural, ObjectSingle), 
-    Many(Production('and', Rule().define(ObjectPlural, ObjectSingle)), 1, 2)
+    ObjectPlural, Many(Production('and', Rule().define(ObjectPlural, ObjectSingle)), 0, 2)
 )).add_post(prevent_collection_repeat)
 Object.define(ObjectMulti, ObjectSingle)
 
